@@ -27,32 +27,23 @@ For spot names, use known mappings:
 
 ## Tool: WindSpotExtract
 
-The CLI is embedded in this skill (see **Embedded Source** section below). Before running, ensure it is installed:
+The `windspot/` package is bundled in this skill's project directory. No installation needed — run it directly via `PYTHONPATH`.
 
-### Setup
+### Prerequisite
 
-The `windspot` package lives in this skill's project directory (`windspot/`). Install it once:
-
-```bash
-SKILL_DIR="$(dirname "$0")"  # or the absolute path to this skill's project dir
-python3 -m pip install "$SKILL_DIR/" --quiet
-python3 -m playwright install chromium 2>/dev/null || true
-```
-
-Determine the command to use (binary may not be on PATH after install):
+`playwright` Python package and Chromium must be available (one-time setup):
 
 ```bash
-if windspot --help >/dev/null 2>&1; then
-  WINDSPOT_CMD="windspot"
-else
-  WINDSPOT_CMD="python3 -m windspot.cli"
-fi
+python3.13 -m pip install playwright
+python3.13 -m playwright install chromium
 ```
 
 ### Command
 
+Set `SKILL_DIR` to the absolute path of this skill's project directory (where `SKILL.md` lives), then:
+
 ```bash
-$WINDSPOT_CMD {spot_id} --3ft --json --model "Beta-WRF 1km" --output-dir "/tmp/windspot"
+PYTHONPATH="$SKILL_DIR" python3.13 -m windspot.cli {spot_id} --3ft --json --model "Beta-WRF 1km" --output-dir "/tmp/windspot"
 ```
 
 **Flags:**
@@ -95,37 +86,17 @@ When `--3ft` is included, the JSON also contains:
 
 ## Workflow
 
-### 1. Ensure WindSpotExtract is installed
+### 1. Run WindSpotExtract
 
-The package is bundled in this skill's `windspot/` directory. Install from the skill's project root if not already installed:
-
-```bash
-if windspot --help >/dev/null 2>&1; then
-  WINDSPOT_CMD="windspot"
-elif python3 -c "import windspot" 2>/dev/null; then
-  WINDSPOT_CMD="python3 -m windspot.cli"
-else
-  # SKILL_PROJECT_DIR = absolute path to this skill's project directory
-  python3 -m pip install "$SKILL_PROJECT_DIR/" --quiet
-  python3 -m playwright install chromium 2>/dev/null || true
-  if windspot --help >/dev/null 2>&1; then
-    WINDSPOT_CMD="windspot"
-  else
-    WINDSPOT_CMD="python3 -m windspot.cli"
-  fi
-fi
-```
-
-### 2. Run WindSpotExtract
+`SKILL_DIR` = absolute path to this skill's project directory.
 
 ```bash
-OUTPUT_DIR="/tmp/windspot"
-$WINDSPOT_CMD {spot_id} --3ft --json --model "Beta-WRF 1km" --output-dir "$OUTPUT_DIR"
+PYTHONPATH="$SKILL_DIR" python3.13 -m windspot.cli {spot_id} --3ft --json --model "Beta-WRF 1km" --output-dir "/tmp/windspot"
 ```
 
 If `--no-login` is used, omit `--model` (Beta-WRF requires login):
 ```bash
-$WINDSPOT_CMD {spot_id} --3ft --json --no-login --output-dir "$OUTPUT_DIR"
+PYTHONPATH="$SKILL_DIR" python3.13 -m windspot.cli {spot_id} --3ft --json --no-login --output-dir "/tmp/windspot"
 ```
 
 Set timeout to 60 seconds.
@@ -156,20 +127,16 @@ Send three messages to the requesting user (or configured destination):
 - Cookies are cached at `~/.config/windspot/cookies.json`
 - Timeout: 60 seconds (typical run time: ~20–30s)
 - Output paths are returned in JSON as `forecast_screenshot` and `tides_screenshot` — always use those values rather than constructing paths manually
-- If `windspot` binary is not on PATH after install, use `python3 -m windspot.cli` instead
+- No installation required — run via `PYTHONPATH="$SKILL_DIR" python3.13 -m windspot.cli`
+- Only external dependency is the `playwright` pip package + Chromium
 
 ---
 
 ## Source
 
-The CLI source lives in `windspot/` within this skill's project directory. Install with:
+The CLI source lives in `windspot/` within this skill's project directory.
 
-```bash
-python3 -m pip install /path/to/windspot-skill/
-python3 -m playwright install chromium
-```
-
-**Prerequisites:** Python 3.10+, Google Chrome installed.
+**Prerequisites:** Python 3.10+ (code uses `X | None` union syntax), Google Chrome, `playwright` pip package.
 
 ### Files
 
@@ -194,8 +161,8 @@ CLI tool to extract iKitesurf wind forecast and tide data. Takes screenshots of 
 ## Install
 
 ```bash
-python3 -m pip install playwright
-python3 -m playwright install chromium
+python3.13 -m pip install playwright
+python3.13 -m playwright install chromium
 ```
 
 ## Quick Start
