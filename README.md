@@ -1,6 +1,6 @@
 # windspot-skill
 
-OpenClaw / Claude Code skill for generating iKitesurf wind and tide forecast summaries.
+OpenClaw skill for generating iKitesurf wind and tide forecast summaries.
 
 Captures screenshots of the Forecast Table and Nearby Tides sections, extracts tide schedule, calculates 3ft crossing times, and sends results via Telegram.
 
