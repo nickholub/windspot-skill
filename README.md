@@ -26,6 +26,9 @@ ln -s ~/projects/windspot-skill ~/.openclaw/workspace/skills/windspot
 ```
 
 Restart OpenClaw — the skill is detected automatically.
+```bash
+openclaw gateway restart
+```
 
 ## Authentication
 
@@ -42,9 +45,9 @@ The skill reads these automatically. After first login, session cookies are cach
 Trigger by mentioning a spot name, ID, or iKitesurf URL in your OpenClaw conversation:
 
 ```
-windspot 3rd Ave Channel
-windspot 1374
-windspot https://wx.ikitesurf.com/spot/1374
+/windspot 3rd Ave Channel
+/windspot 1374
+/windspot https://wx.ikitesurf.com/spot/1374
 ```
 
 ## Models
