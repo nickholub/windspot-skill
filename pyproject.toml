@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "windspot"
+version = "1.0.0"
+description = "iKitesurf wind forecast and tide data extractor"
+requires-python = ">=3.10"
+dependencies = ["playwright"]
+
+[project.scripts]
+windspot = "windspot.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["windspot*"]
+
+[tool.setuptools.package-data]
+windspot = ["page_scripts.js"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
