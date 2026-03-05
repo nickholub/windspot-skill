@@ -64,13 +64,15 @@ window.PageScripts = {
     },
 
     /**
-     * Heuristic check for authenticated session
+     * Heuristic check for logged-out state
      */
-    isLikelyLoggedIn: function() {
-        const authEls = [...document.querySelectorAll('a, button, span, div')].map(el => (el.textContent || '').trim()).filter(Boolean);
+    isLikelyLoggedOut: function() {
+        const authEls = [...document.querySelectorAll('a, button, span')]
+            .map(el => (el.textContent || '').trim())
+            .filter(Boolean);
         const hasSignIn = authEls.some(t => /^(sign\s*in|log\s*in)$/i.test(t));
-        const hasAccount = authEls.some(t => /(my\s*account|account|logout|log\s*out)/i.test(t));
-        return !hasSignIn || hasAccount;
+        const hasAccount = authEls.some(t => /(my\s*account|logout|log\s*out)/i.test(t));
+        return hasSignIn && !hasAccount;
     },
 
     /**
@@ -123,22 +125,40 @@ window.PageScripts = {
         if (h) h.scrollIntoView({block: 'start'});
     },
 
+    _forecastContainer: function() {
+        const ftHeader = [...document.querySelectorAll('h2')].find(h => h.textContent.includes('Forecast Table'));
+        if (!ftHeader) return null;
+        let container = ftHeader.parentElement;
+        for (let i = 0; i < 5; i++) {
+            if (!container) break;
+            if (container.querySelectorAll('button').length > 1) return container;
+            container = container.parentElement;
+        }
+        return ftHeader.parentElement;
+    },
+
     /**
      * Click a forecast model button
      * @param {string} modelName - Model name prefix to match
      * @returns {boolean} - True if button was found and clicked
      */
     clickModel: function(modelName) {
-        const ftHeader = [...document.querySelectorAll('h2')].find(h => h.textContent.includes('Forecast Table'));
-        if (!ftHeader) return false;
-        let container = ftHeader.parentElement;
-        for (let i = 0; i < 5; i++) {
-            const btns = container.querySelectorAll('button');
-            const btn = [...btns].find(b => b.textContent.trim().startsWith(modelName));
-            if (btn) { btn.click(); return true; }
-            if (container.parentElement) container = container.parentElement;
-        }
+        const container = this._forecastContainer();
+        if (!container) return false;
+        const btns = container.querySelectorAll('button');
+        const btn = [...btns].find(b => (b.textContent || '').trim().startsWith(modelName));
+        if (btn) { btn.click(); return true; }
         return false;
+    },
+
+    /**
+     * Whether a model button is visible in the Forecast Table controls
+     */
+    hasModelButton: function(modelName) {
+        const container = this._forecastContainer();
+        if (!container) return false;
+        const btns = [...container.querySelectorAll('button')].map(b => (b.textContent || '').trim());
+        return btns.some(t => t.startsWith(modelName));
     },
 
     /**
@@ -146,26 +166,34 @@ window.PageScripts = {
      * @returns {string|null} - Active model name or null
      */
     getActiveModel: function() {
-        const ftHeader = [...document.querySelectorAll('h2')].find(h => h.textContent.includes('Forecast Table'));
-        if (!ftHeader) return null;
-        let container = ftHeader.parentElement;
-        for (let i = 0; i < 5; i++) {
-            // Active model button usually has a distinct style (filled bg, bold, etc.)
-            const btns = container.querySelectorAll('button');
-            for (const btn of btns) {
-                const style = getComputedStyle(btn);
-                const bg = style.backgroundColor;
-                // Active buttons typically have a colored background
-                if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent' && bg !== 'rgb(255, 255, 255)') {
-                    const text = btn.textContent.trim().split('\n')[0].trim();
-                    if (text && !text.includes('Daily') && !text.includes('7 Day') && !text.includes('Basic') && !text.includes('Detailed')) {
-                        return text;
-                    }
-                }
+        const container = this._forecastContainer();
+        if (!container) return null;
+
+        const btns = [...container.querySelectorAll('button')];
+
+        // Prefer explicit selected state when available
+        for (const btn of btns) {
+            const ariaPressed = (btn.getAttribute('aria-pressed') || '').toLowerCase() === 'true';
+            const ariaSelected = (btn.getAttribute('aria-selected') || '').toLowerCase() === 'true';
+            const cls = (btn.className || '').toString();
+            const classSelected = /\b(active|selected|is-active)\b/i.test(cls);
+            if (ariaPressed || ariaSelected || classSelected) {
+                const text = (btn.textContent || '').trim().split('\n')[0].trim();
+                if (text && !/daily|7 day|basic|detailed/i.test(text)) return text;
             }
-            if (container.parentElement) container = container.parentElement;
         }
-        // Fallback: check the model description line
+
+        // Fallback: infer from background style
+        for (const btn of btns) {
+            const style = getComputedStyle(btn);
+            const bg = style.backgroundColor;
+            if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent' && bg !== 'rgb(255, 255, 255)') {
+                const text = (btn.textContent || '').trim().split('\n')[0].trim();
+                if (text && !/daily|7 day|basic|detailed/i.test(text)) return text;
+            }
+        }
+
+        // Last fallback: any model-like token in container text
         const desc = container ? container.innerText : '';
         const m = desc.match(/(BLEND|Beta-WRF|iK-WRF|iK-TRRM|iK-HRRR|NAM|GFS|ICON|WW3)[^\n]*/);
         return m ? m[1] : null;

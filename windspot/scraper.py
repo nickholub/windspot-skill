@@ -154,6 +154,9 @@ def run(
         def get_active_model() -> str | None:
             return page.evaluate("() => PageScripts.getActiveModel()")
 
+        def has_model_button(name: str) -> bool:
+            return bool(page.evaluate(f"() => PageScripts.hasModelButton('{name}')"))
+
         click_model(model_name)
         time.sleep(2)
 
@@ -161,30 +164,44 @@ def run(
         model_switched = bool(active and model_name.split()[0] in active)
 
         if needs_login and not model_switched and username and password:
-            print(f"Model '{model_name}' did not activate. Attempting fresh login and retry...", file=sys.stderr)
-            if try_login():
-                page.goto(url, wait_until="domcontentloaded", timeout=30000)
-                time.sleep(5)
-                page.evaluate("() => PageScripts.scrollToSection('Forecast Table')")
-                time.sleep(3)
-                click_model(model_name)
-                time.sleep(2)
-                active = get_active_model()
-                model_switched = bool(active and model_name.split()[0] in active)
-                if not model_switched:
-                    print(f"Warning: '{model_name}' not available after login (subscription/access issue?). Falling back to BLEND.", file=sys.stderr)
+            # Hard checks before re-login: only login if clearly logged out, no cookies,
+            # or the requested premium model button is not present at all.
+            likely_logged_out = page.evaluate("() => PageScripts.isLikelyLoggedOut()")
+            has_requested_model = has_model_button(model_name)
+            should_relogin = (not had_cookies) or bool(likely_logged_out) or (not has_requested_model)
+
+            if should_relogin:
+                print(
+                    f"Model '{model_name}' did not activate. "
+                    f"had_cookies={had_cookies}, likely_logged_out={bool(likely_logged_out)}, "
+                    f"has_model_button={has_requested_model}. Attempting login and retry...",
+                    file=sys.stderr,
+                )
+                if try_login():
+                    page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                    time.sleep(5)
+                    page.evaluate("() => PageScripts.scrollToSection('Forecast Table')")
+                    time.sleep(3)
+                    click_model(model_name)
+                    time.sleep(2)
+                    active = get_active_model()
+                    model_switched = bool(active and model_name.split()[0] in active)
+                    if not model_switched:
+                        print(f"Warning: '{model_name}' not available after login (subscription/access issue?). Falling back to BLEND.", file=sys.stderr)
+                        model_name = "BLEND"
+                        click_model(model_name)
+                        time.sleep(2)
+                else:
+                    print("Warning: Login failed. Falling back to BLEND.", file=sys.stderr)
                     model_name = "BLEND"
+                    page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                    time.sleep(5)
+                    page.evaluate("() => PageScripts.scrollToSection('Forecast Table')")
+                    time.sleep(3)
                     click_model(model_name)
                     time.sleep(2)
             else:
-                print("Warning: Login failed. Falling back to BLEND.", file=sys.stderr)
-                model_name = "BLEND"
-                page.goto(url, wait_until="domcontentloaded", timeout=30000)
-                time.sleep(5)
-                page.evaluate("() => PageScripts.scrollToSection('Forecast Table')")
-                time.sleep(3)
-                click_model(model_name)
-                time.sleep(2)
+                print("Model activation check failed, but session appears logged in; not forcing re-login.", file=sys.stderr)
 
         page.evaluate("() => PageScripts.scrollToSection('Forecast Table')")
         time.sleep(0.5)
