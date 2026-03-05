@@ -78,8 +78,9 @@ def launch_chrome_cdp(
     if user_data_dir:
         profile = user_data_dir
     else:
-        tmp_profile = os.path.join("/tmp", f"windspot-chrome-{os.getpid()}")
-        profile = tmp_profile
+        # Use a persistent profile so login/session can survive between runs.
+        profile = os.path.join(os.path.expanduser("~"), ".config", "windspot", "chrome-profile")
+        os.makedirs(profile, mode=0o700, exist_ok=True)
     args.append(f"--user-data-dir={profile}")
 
     proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

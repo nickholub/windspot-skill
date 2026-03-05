@@ -35,9 +35,14 @@ window.PageScripts = {
         const dateMatch = allText.match(/Today\s+(\w+\s+\d{1,2},\s+\d{4})/);
         if (dateMatch) result.date = dateMatch[1];
 
-        // Get station name - look for text right after "Nearby Tides" heading
-        const stationMatch = allText.match(/Nearby Tides[\s\S]*?\n\s*([A-Za-z][\w\s().'-]+?)\n/);
-        if (stationMatch) result.station = stationMatch[1].trim();
+        // Get station name - prefer immediate line after "Nearby Tides"
+        const stationMatch = allText.match(/Nearby Tides\s*\n+\s*([^\n]+)\n/);
+        if (stationMatch) {
+            const candidate = stationMatch[1].trim();
+            if (!/open container actions menu/i.test(candidate)) {
+                result.station = candidate;
+            }
+        }
 
         return result;
     },
@@ -56,6 +61,16 @@ window.PageScripts = {
      */
     isLoginFormVisible: function() {
         return !!document.querySelector('input[type="password"]:not([style*="display: none"])');
+    },
+
+    /**
+     * Heuristic check for authenticated session
+     */
+    isLikelyLoggedIn: function() {
+        const authEls = [...document.querySelectorAll('a, button, span, div')].map(el => (el.textContent || '').trim()).filter(Boolean);
+        const hasSignIn = authEls.some(t => /^(sign\s*in|log\s*in)$/i.test(t));
+        const hasAccount = authEls.some(t => /(my\s*account|account|logout|log\s*out)/i.test(t));
+        return !hasSignIn || hasAccount;
     },
 
     /**
