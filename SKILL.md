@@ -1,6 +1,6 @@
 ---
 name: windspot
-description: Generate and send wind spot forecast summary from iKitesurf. Triggers when message starts with "windspot" followed by a spot name, ID, or URL (e.g. "windspot Crissy Field", "windspot 427", "windspot wx.ikitesurf.com/spot/408"). Also triggers on iKitesurf spot URLs (wx.ikitesurf.com/spot/*). Uses WindSpotExtract CLI tool to capture screenshots. Sends results to Telegram.
+description: Generate and send wind spot forecast summary from iKitesurf. Triggers when message starts with "windspot" or "/windspot" followed by a spot name, ID, or URL (e.g. "windspot Crissy Field", "/windspot 427", "windspot wx.ikitesurf.com/spot/408"). Also triggers on iKitesurf spot URLs (wx.ikitesurf.com/spot/*). Use the local windspot skill CLI module (python -m windspot.cli), not legacy external scripts.
 ---
 
 # Wind Spot Summary
