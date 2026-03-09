@@ -13,7 +13,7 @@ except ImportError:
     sys.exit(1)
 
 from .models import PREMIUM_MODELS, resolve_model_name
-from .tides import calc_3ft_crossings
+from .tides import calc_3ft_crossings, calc_crossings_at, build_tide_schedule
 
 _SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "page_scripts.js")
 _PAGE_SCRIPTS_JS = open(_SCRIPT_PATH).read() if os.path.exists(_SCRIPT_PATH) else ""
@@ -213,7 +213,10 @@ def run(
         tide_data = page.evaluate("() => PageScripts.extractTideData()")
         page.screenshot(path=tides_path, full_page=False)
 
-        crossings = calc_3ft_crossings(tide_data["tides"]) if (calc_3ft and tide_data and tide_data.get("tides")) else []
+        tide_list = tide_data.get("tides", []) if tide_data else []
+        crossings = calc_3ft_crossings(tide_list) if (calc_3ft and tide_list) else []
+        crossings_5ft = calc_crossings_at(tide_list, 5.0) if (calc_3ft and tide_list) else []
+        schedule = build_tide_schedule(tide_list, crossings, crossings_5ft) if (calc_3ft and tide_list) else []
 
         result = {
             "spot_id": spot_id,
@@ -224,8 +227,10 @@ def run(
             "tides_screenshot": tides_path,
             "tide_station": tide_data.get("station", "") if tide_data else "",
             "tide_date": tide_data.get("date", "") if tide_data else "",
-            "tides": tide_data.get("tides", []) if tide_data else [],
+            "tides": tide_list,
             "crossings_3ft": crossings,
+            "crossings_5ft": crossings_5ft,
+            "tide_schedule": schedule,
             "timestamp": datetime.now().isoformat(),
         }
 

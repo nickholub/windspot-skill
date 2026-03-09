@@ -45,8 +45,17 @@ Send three messages:
 
 1. **Forecast screenshot** — `forecast_screenshot` from JSON, caption: `🏄 {spot_name} — Forecast`
 2. **Tides screenshot** — `tides_screenshot` from JSON, caption: `🌊 {spot_name} Tides — {tide_date}`
-3. **Tide above 3ft windows** — from `crossings_3ft`: a `rising` crossing starts a window, `falling` ends it. If first tide is already above 3ft, start at midnight. If last crossing is `rising`, extend to midnight.
+3. **Tide schedule + above-3ft windows** — two sections:
+
+   **Tide schedule** from `tide_schedule` (sorted by time, all key tide events):
    ```
-   🌊 Tide above 3ft windows:
+   🌊 Tide Schedule:
+   • {time} -> {height}ft ({label})
+   ```
+   Labels: `low`, `high`, `3ft rising`, `3ft falling`, `5ft rising`, `5ft falling`
+
+   **Tide above 3ft windows** from `crossings_3ft`: a `rising` crossing starts a window, `falling` ends it. If first tide is already above 3ft, start at midnight. If last crossing is `rising`, extend to midnight.
+   ```
+   🎯 Tide above 3ft:
    • {start_time} – {end_time} ({duration})
    ```
