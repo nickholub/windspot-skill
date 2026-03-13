@@ -29,7 +29,10 @@ def format_output(result: dict) -> str:
         for e in result["tide_schedule"]:
             ht = e["height"]
             ht_str = f"{ht:.1f}ft" if isinstance(ht, float) else f"{ht}ft"
-            lines.append(f"  • {e['time']} -> {ht_str} ({e['label']})")
+            line = f"  • {e['time']} -> {ht_str} ({e['label']})"
+            if e["label"] in {"low", "high"}:
+                line = f"**{line}**"
+            lines.append(line)
     elif result["tides"]:
         lines.append("📊 Tides:")
         for t in result["tides"]:

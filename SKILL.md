@@ -52,6 +52,7 @@ Send three messages:
    🌊 Tide Schedule:
    • {time} -> {height}ft ({label})
    ```
+   Formatting rule: if `{label}` is `low` or `high`, render the entire schedule line in bold.
    Labels: `low`, `high`, `3ft rising`, `3ft falling`, `5ft rising`, `5ft falling`
 
    **Tide above 3ft windows** from `crossings_3ft`: a `rising` crossing starts a window, `falling` ends it. If first tide is already above 3ft, start at midnight. If last crossing is `rising`, extend to midnight.
