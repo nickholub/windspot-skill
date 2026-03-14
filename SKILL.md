@@ -1,6 +1,6 @@
 ---
 name: windspot
-description: Generate and send wind spot forecast summary from iKitesurf. Triggers when message starts with "windspot" or "/windspot" followed by a spot name, ID, or URL (e.g. "windspot Crissy Field", "/windspot 427", "windspot wx.ikitesurf.com/spot/408"). Also triggers on iKitesurf spot URLs (wx.ikitesurf.com/spot/*). Use the local windspot skill CLI module (python -m windspot.cli), not legacy external scripts.
+description: Generate and send wind spot forecast summary from iKitesurf. Triggers when message starts with "windspot" or "/windspot", optionally followed by a spot name, ID, or URL (e.g. "windspot Crissy Field", "/windspot 427", "windspot wx.ikitesurf.com/spot/408"). Also triggers on iKitesurf spot URLs (wx.ikitesurf.com/spot/*). If no spot is specified, defaults to 3rd Ave Channel (ID 1374). Use the local windspot skill CLI module (python -m windspot.cli), not legacy external scripts.
 ---
 
 # Wind Spot Summary
@@ -9,7 +9,7 @@ Generate a wind+tide forecast summary for any iKitesurf spot and send via Telegr
 
 ## Trigger Detection
 
-Activate when the user provides a spot name, ID, or iKitesurf URL.
+Activate when the user sends "windspot" or "/windspot", with or without a spot argument. If no spot is provided, default to **3rd Ave Channel** (ID 1374).
 
 Spot name mappings:
 - Half Moon Bay / HMB → 427
